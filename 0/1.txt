@@ -1,0 +1,46 @@
+#include <iostream>
+
+using namespace std;
+
+int prime(int);
+
+int main()
+{
+	int cnt2 = 0, cnt3 = 0, cnt6 = 0, cnt23 = 0, cntp = 0;
+	int j = 2;
+	for (int i = 1; i <= 100; ++i){
+		if (i % 2 == 0)
+			cnt2++;
+		if (i % 3 == 0)
+			cnt3++;
+		if (i % 2 == 0 && i % 3 == 0)
+			cnt6++;
+		if (i % 2 != 0 && i % 3 != 0)
+			cnt23++;
+		if (i % 2 != 0 && i % 3 != 0 && prime(i) && i!=1)
+			cntp++;
+	}
+	cout << "2의 배수 : " << cnt2 << "개" << endl << "3의 배수 : " << cnt3 << "개" << endl << "6의 배수 : " << cnt6 << "개" << endl;
+	cout << "2의 배수도 3의 배수도 아닌 수: " << cnt23 << "개" << endl;
+	for (int i = 1; i <= 100; ++i)
+	if (i % 2 != 0 && i % 3 != 0)
+		cout << i << " ";
+	cout << endl;
+
+	cout << "그 중 소수인 수: " << cntp << "개" << endl;
+
+	for (int i = 2; i <= 100; ++i)
+	if (i % 2 != 0 && i % 3 != 0 && prime(i))
+		cout << i << " ";
+	cout << endl;
+}
+
+
+int prime(int a){
+	for (int i = 2; i < a; ++i){
+		if (a%i == 0)
+			return 0;
+		else if (a==i)
+			return 1;
+	}
+}

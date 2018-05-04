@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <Windows.h>
+
+#define _CRT_SECURE_NO_WARNINGS
+
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "window programe 4-2";	// 제목
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 0, 0, 1200, 700, NULL, (HMENU)NULL, hInstance, NULL); //윈도우 클래스 이름, 타이틀 이름, 스타일, x좌표, y좌표, 폭, 높이, 부모윈도우 핸들, 메뉴 핸들, 응용 프로그램id, 생성된 윈도우 정보 
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HPEN hPen, oldPen;
+	static int x1, y1, x2, y2, x3, y3, count, shape[5], plus, minus, i, r, g, b;
+	static char str[50], error[20];
+	static SIZE size;
+
+	switch (uMsg)
+	{
+	case WM_CREATE:
+		count = 0, plus = 0, minus = 0, i = 0;
+		x1 = rand() % 500 + 1, y1 = rand() % 500 + 1, x2 = rand() % 500 + 1, y2 = rand() % 500 + 1, x3 = rand() % 500 + 1, y3 = rand() % 500 + 1;
+
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+
+		hPen = CreatePen(PS_SOLID, 1, RGB(r, g, b));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		for (int j = 0; j < 5; ++j)
+		switch (shape[j])
+		{
+		case 1://삼각형
+			MoveToEx(hdc, x1, y1, NULL);
+			LineTo(hdc, x2, y2);
+			MoveToEx(hdc, x2, y2, NULL);
+			LineTo(hdc, x3, y3);
+			MoveToEx(hdc, x3, y3, NULL);
+			LineTo(hdc, x1, y1);
+			break;
+		case 2://원
+			Ellipse(hdc, rand() % 500 + 1, rand() % 500 + 1, rand() % 500 + 1, rand() % 500 + 1);
+			break;
+		case 3://사각형
+			Rectangle(hdc, rand() % 500 + 1, rand() % 500 + 1, rand() % 500 + 1, rand() % 500 + 1);
+			break;
+		}
+
+		SelectObject(hdc, oldPen); 
+		DeleteObject(hPen);
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_KEYDOWN:
+		if (wParam == 'T' || wParam == 'T'){
+			if (i > 5)
+				i = 0;
+			shape[i] = 1;
+			x1 = rand() % 500 + 1, y1 = rand() % 500 + 1, x2 = rand() % 500 + 1, y2 = rand() % 500 + 1, x3 = rand() % 500 + 1, y3 = rand() % 500 + 1;
+			i++;
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		else if (wParam == 'E' || wParam == 'e'){
+			if (i > 5)
+				i = 0;
+			shape[i] = 2;
+			++i;			
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		else if (wParam == 'R' || wParam == 'r'){
+			if (i > 5)
+				i = 0;
+			shape[i] = 3;
+			i++;
+			InvalidateRect(hWnd, NULL, TRUE);
+		}
+		
+		
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+
+		return 0;
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}

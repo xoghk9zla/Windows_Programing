@@ -1,0 +1,206 @@
+#include <Windows.h>
+#include <math.h>
+#include "resource.h"
+HINSTANCE g_hinst;
+LPCTSTR lpszClass = "window programe 4-5";
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+struct Shape{
+	int x, y, r, color[3], shape;
+	bool sel, cp;
+};
+float Len(int x, int y, Shape c){
+	return (sqrt((float)(x - c.x)*(x - c.x) + (y - c.y)*(y - c.y)));
+}
+bool InCircle(int x, int y, Shape c){
+	if (Len(x, y, c) < (float)c.r)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevinstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hinst = hinstance;
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hinstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU5);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 100, 100, 1000, 600, NULL, (HMENU)NULL, hinstance, NULL);
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HPEN hPen, oldPen;	//Ææ
+	HBRUSH hbrush, oldbrush;	//ºê·¯½¬
+	static Shape S[10];
+	static int num, mx, my;
+	static HMENU hMenu, hSubMenu;
+	switch (uMsg){
+	case WM_CREATE:
+		hMenu = GetMenu(hWnd);
+		hSubMenu = GetSubMenu(hMenu, 1);
+		EnableMenuItem(hSubMenu, ID_COPY, MF_GRAYED);
+		hSubMenu = GetSubMenu(hMenu, 2);
+		EnableMenuItem(hSubMenu, ID_PASTE, MF_GRAYED);
+		for (int i = 0; i < 10; ++i)
+			S[i].shape = 0, S[i].r = 50, S[i].sel = FALSE, S[i].cp = FALSE;
+		num = 0;
+		break;
+	case WM_PAINT:
+		for (int i = 0; i < 10; ++i){
+			EnableMenuItem(hSubMenu, ID_40047,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40048,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40049,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40050,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40051,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40052,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40053,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40054,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40055,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_40056,
+				S[i].sel ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(hSubMenu, ID_PASTE,
+				S[i].cp ? MF_ENABLED : MF_GRAYED);
+		}
+		hdc = BeginPaint(hWnd, &ps);
+		for (int i = 0; i < num; ++i){
+			if (S[i].sel == TRUE){
+				Rectangle(hdc, S[i].x - 60, S[i].y - 60, S[i].x - 50, S[i].y - 50);
+				Rectangle(hdc, S[i].x + 60, S[i].y + 60, S[i].x + 50, S[i].y + 50);
+				Rectangle(hdc, S[i].x - 60, S[i].y + 60, S[i].x - 50, S[i].y + 50);
+				Rectangle(hdc, S[i].x + 60, S[i].y - 60, S[i].x + 50, S[i].y - 50);
+			}
+			hPen = CreatePen(PS_SOLID, 1, RGB(S[i].color[0], S[i].color[1], S[i].color[2]));
+			oldPen = (HPEN)SelectObject(hdc, hPen);
+
+			if (S[i].shape == 1)
+				Ellipse(hdc, S[i].x - 50, S[i].y - 50, S[i].x + 50, S[i].y + 50);
+			else if (S[i].shape == 2)
+				Rectangle(hdc, S[i].x - 50, S[i].y - 50, S[i].x + 50, S[i].y + 50);
+			else if (S[i].shape == 3){
+				MoveToEx(hdc, S[i].x - 50, S[i].y - 50, NULL);
+				LineTo(hdc, S[i].x + 50, S[i].y + 50);
+			}
+			SelectObject(hdc, oldPen);
+			DeleteObject(hPen);
+		}
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_LBUTTONDOWN:
+		mx = LOWORD(lParam);
+		my = HIWORD(lParam);
+		for (int i = 0; i < 10; ++i){
+			if (InCircle(mx, my, S[i]))
+				S[i].sel = TRUE;
+			else
+				S[i].sel = FALSE;
+		}
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
+	case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+		case ID_Circle:
+			if (num < 10){
+				S[num].x = rand() % 1000, S[num].y = rand() % 600;
+				S[num].shape = 1;
+				InvalidateRect(hWnd, NULL, TRUE);
+				++num;
+			}
+			break;
+		case ID_Rect:
+			if (num < 10){
+				S[num].x = rand() % 600, S[num].y = rand() % 900;
+				S[num].shape = 2, ++num;
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			break;
+		case ID_Line:
+			if (num < 10){
+				S[num].x = rand() % 900, S[num].y = rand() % 500;
+				S[num].shape = 3, ++num;
+				InvalidateRect(hWnd, NULL, TRUE);
+			}
+			break;
+		case ID_Red:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 255, S[i].color[1] = 0, S[i].color[2] = 0;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_Green:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 0, S[i].color[1] = 255, S[i].color[2] = 0;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_Blue:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 0, S[i].color[1] = 0, S[i].color[2] = 255;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_Yellow:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 250, S[i].color[1] = 250, S[i].color[2] = 0;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_Purple:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 150, S[i].color[1] = 0, S[i].color[2] = 200;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_Black:
+			for (int i = num; i < 10; ++i)
+				S[i].color[0] = 0, S[i].color[1] = 0, S[i].color[2] = 0;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case ID_COPY:
+			break;
+		case ID_PASTE:
+			break;
+		case ID_UNDO:
+			break;
+		default:
+			break;
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+
+}

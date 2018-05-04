@@ -1,0 +1,230 @@
+#include <stdio.h>
+#include <Windows.h>
+
+#define _CRT_SECURE_NO_WARNINGS
+
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "window programe 3-1";	// 제목
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
+
+struct Point{
+	int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+	Point(){}
+	Point(int x1, int y1, int x2, int y2) :x1(x1), y1(y1), x2(x2), y2(y2){}
+};
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 0, 0, 1200, 700, NULL, (HMENU)NULL, hInstance, NULL); //윈도우 클래스 이름, 타이틀 이름, 스타일, x좌표, y좌표, 폭, 높이, 부모윈도우 핸들, 메뉴 핸들, 응용 프로그램id, 생성된 윈도우 정보
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HPEN hPen, oldPen;
+	static Point head, tail, temp, obj;
+	static SIZE size;
+	static int speed,cnt, position = 0;
+	switch (uMsg)
+	{
+	case WM_CREATE:
+		tail = { 0, 0, 100, 100 }, head = { tail.x2, tail.y1, tail.x2 + 100, tail.y2 };
+		speed = 1100, cnt = 0;
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		//꼬리부분
+		hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		Ellipse(hdc, tail.x1, tail.y1, tail.x2, tail.y2);
+		//머리부분
+		hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		Ellipse(hdc, head.x1, head.y1, head.x2, head.y2);
+
+		hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		Ellipse(hdc, obj.x1, obj.y1, obj.x2, obj.y2);
+
+		SelectObject(hdc, oldPen);
+		DeleteObject(hPen);
+		ReleaseDC(hWnd, hdc);
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_RIGHT:
+			SetTimer(hWnd, 1, speed, NULL);
+			if (head.x1 < tail.x1){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.y2 > tail.y2 || head.y1 < tail.y1)
+				head.x1 = tail.x2, head.y1 = tail.y1, head.x2 = tail.x2 + 100, head.y2 = tail.y2;
+
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 3);
+			KillTimer(hWnd, 4);
+			position = 1;
+			break;
+		case VK_LEFT:
+			SetTimer(hWnd, 2, speed, NULL);
+			if (head.x1 > tail.x1){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.y2 < tail.y2 || head.y1 > tail.y1)
+				head.x1 = tail.x1 - 100, head.y1 = tail.y1, head.x2 = tail.x1, head.y2 = tail.y2;
+
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 3);
+			KillTimer(hWnd, 4);
+			position = 1;
+			break;
+		case VK_DOWN:
+			if (head.y1 < tail.y1){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.y1 == tail.y1)
+				head.x1 = tail.x1, head.y1 = tail.y2, head.x2 = tail.x2, head.y2 = tail.y2 + 100;
+			SetTimer(hWnd, 3, speed, NULL);
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 4);
+			position = 2;
+			break;
+		case VK_UP:
+			if (head.y1 > tail.y1){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.y1 == tail.y1)
+				head.x1 = tail.x1, head.y1 = tail.y1 - 100, head.x2 = tail.x2, head.y2 = tail.y1;
+			SetTimer(hWnd, 4, speed, NULL);
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 3);
+			position = 2;
+			break;
+		case VK_SPACE:
+			SetTimer(hWnd, 5, 500, NULL);
+			break;
+		case VK_RETURN:
+			obj.x1 = 0, obj.y1 = 0, obj.x2 = 100, obj.y2 = 100;
+			SetTimer(hWnd, 6, 100, NULL);
+			break;
+		}
+	
+	case WM_CHAR:
+		switch (wParam){
+		case '+':
+			if (speed >500)
+				speed -= 500;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case '-':
+			speed += 500;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		}
+	case WM_TIMER:
+		switch (wParam)
+		{
+		case 1:
+			if (head.x2 < 1180)
+				head.x1 += 20, head.x2 += 20, tail.x1 += 20, tail.x2 += 20;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 2:
+			if (head.x1 > 0)
+				head.x1 -= 20, head.x2 -= 20, tail.x1 -= 20, tail.x2 -= 20;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 3:
+			if (head.y2 < 660)
+				head.y1 += 20, head.y2 += 20, tail.y1 += 20, tail.y2 += 20;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 4:
+			if (head.y1 > 0)
+				head.y1 -= 20, head.y2 -= 20, tail.y1 -= 20, tail.y2 -= 20;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 5:
+			if (position == 1){
+				head.y1 += 20, head.y2 += 20, tail.y1 += 20, tail.y2 += 20, obj.y1 += 20, obj.y2 += 20;
+				cnt++;
+				if (cnt > 5)
+					head.y1 -= 40, head.y2 -= 40, tail.y1 -= 40, tail.y2 -= 40, obj.y1 -= 40, obj.y2 -= 40;
+				if (cnt == 10){
+					cnt = 0, position = 0;
+					KillTimer(hWnd, 5);
+				}
+			}
+			else if (position == 2){
+				head.x1 += 20, head.x2 += 20, tail.x1 += 20, tail.x2 += 20, obj.x1 += 20, obj.x2 += 20;
+				cnt++;
+				if (cnt > 5)
+					head.x1 -= 40, head.x2 -= 40, tail.x1 -= 40, tail.x2 -= 40, obj.x1 -= 40, obj.x2 -= 40;
+				if (cnt == 10){
+					cnt = 0, position = 0;
+					KillTimer(hWnd, 5);
+				}
+			}
+		case 6:
+			hdc = GetDC(hWnd);
+			obj.x1 = head.x1 < obj.x1 ? obj.x1 - 1 : obj.x1 + 1;
+			obj.y1 = head.y1 < obj.y1 ? obj.y1 - 1 : obj.y1 + 1;
+			obj.x2 = head.x2 < obj.x2 ? obj.x2 - 1 : obj.x2 + 1;
+			obj.y2 = head.y2 < obj.y2 ? obj.y2 - 1 : obj.y2 + 1;
+			InvalidateRect(hWnd, NULL, TRUE);
+			if ((obj.x2 - obj.x1) / 2 == (head.x2 - head.x1) / 2 || obj.y2 == head.y2)
+			{
+				TextOut(hdc, 250, 250, "게임종료", strlen("게임종료")+1);
+				ReleaseDC(hWnd, hdc);
+			}
+		}
+		break;	
+	case WM_DESTROY:
+		PostQuitMessage(0);
+
+		return 0;
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}

@@ -1,0 +1,8 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(391,5): warning MSB8028: 중간 디렉터리(Debug\)에 다른 프로젝트(6-4.vcxproj)에서 공유하는 파일이 포함되어 있습니다.  이로 인해 잘못된 정리 및 다시 빌드 동작이 수행될 수 있습니다.
+  소스.cpp
+c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(4): error C2440: '초기화 중': 'const char [20]'에서 'LPCTSTR'(으)로 변환할 수 없습니다.
+  c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(4): note: 가리킨 형식이 관련이 없습니다. 변환하려면 reinterpret_cast, C 스타일 캐스트 또는 함수 스타일 캐스트가 필요합니다.
+c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(61): error C2664: 'BOOL GetTextExtentPointW(HDC,LPCWSTR,int,LPSIZE)': 인수 2을(를) 'char [99]'에서 'LPCWSTR'(으)로 변환할 수 없습니다.
+  c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(61): note: 가리킨 형식이 관련이 없습니다. 변환하려면 reinterpret_cast, C 스타일 캐스트 또는 함수 스타일 캐스트가 필요합니다.
+c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(62): error C2664: 'BOOL TextOutW(HDC,int,int,LPCWSTR,int)': 인수 4을(를) 'char [99]'에서 'LPCWSTR'(으)로 변환할 수 없습니다.
+  c:\users\xorbs\onedrive\바탕 화면\공부\윈도우 프로그래밍\6\6-5\6-4\소스.cpp(62): note: 가리킨 형식이 관련이 없습니다. 변환하려면 reinterpret_cast, C 스타일 캐스트 또는 함수 스타일 캐스트가 필요합니다.

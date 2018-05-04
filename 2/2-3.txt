@@ -1,0 +1,94 @@
+#include <Windows.h>
+
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "window programe 2-3";	// 제목
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 0, 0, 1200, 700, NULL, (HMENU)NULL, hInstance, NULL); //윈도우 클래스 이름, 타이틀 이름, 스타일, x좌표, y좌표, 폭, 높이, 부모윈도우 핸들, 메뉴 핸들, 응용 프로그램id, 생성된 윈도우 정보 
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	HDC hdc;
+	PAINTSTRUCT ps;
+	RECT rect;
+	int i, j, L= 20, a = (L / 2) + 1;
+	char buf[10];
+	switch (uMsg)
+	{
+	case WM_CREATE:
+		break;
+	case WM_PAINT:
+
+		hdc = BeginPaint(hWnd, &ps);
+		rect.left = 0;
+		rect.bottom = 1000;
+		rect.right = 100;
+		rect.top = 0;
+
+		for (i = 1; i <= a; ++i){
+			for (j = i; j <= L; ++j){
+				wsprintf(buf, "(%d, %d)", i, j);
+				DrawText(hdc, buf, strlen(buf), &rect, DT_SINGLELINE | DT_CENTER | DT_LEFT);
+				rect.left += 100;
+			}
+			rect.left = 0;
+			rect.top += 20;
+			rect.bottom += 20;
+			rect.right += 100;
+			L -= 1;
+		}
+		rect.top -= 50;
+		rect.right += 150;
+		for (i = a+1; i >= 1; --i){
+			for (j = i; j <= L; j++){
+				wsprintf(buf, "(%d, %d)", i, j);
+				DrawText(hdc, buf, strlen(buf), &rect, DT_SINGLELINE | DT_CENTER | DT_RIGHT);
+				rect.left += 100;
+			}
+			rect.left = -150;
+			rect.top += 20;
+			rect.bottom += 20;
+			rect.right -= 100;
+			L += 1;
+		}
+		
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}

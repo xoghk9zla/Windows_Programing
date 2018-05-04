@@ -1,0 +1,22 @@
+#include <iostream>
+
+using namespace std;
+
+int prime(int);
+
+int main()
+{
+	for (int a = 1; a < 100; ++a){
+		if (prime(a))
+			cout << a << " ";
+	}
+}
+
+int prime(int a){
+	for (int i = 2; i < a; ++i){
+		if (a%i == 0)
+			return 0;
+		else
+			return 1;
+	}
+}

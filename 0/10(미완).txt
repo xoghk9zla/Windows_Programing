@@ -1,0 +1,154 @@
+#include <iostream>
+#include <time.h>
+
+using namespace std;
+
+int mday[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+int leap(int);
+void Wday(int,int,int);
+void calendar(int, int);
+int Fday(int, int);
+int main()
+{
+	int year, month, day;
+
+	while (1){
+		cin >> year >> month >> day;
+		if (year<2000 || year > 2020){
+			cout << "년도를 다시입력해주세요.";
+			cin >> year;
+		}
+		if (month<1 || month>12){
+			cout << "월을 다시입력해주세요.";
+			cin >> month;
+		}
+		if (day<1 || day>mday[month+1]){
+			cout << "일을 다시입력해주세요.";
+			cin >> day;
+		}
+		if (leap(year))
+			mday[1] = 29;
+		break;
+	}
+	Wday(year, month,day);
+	calendar(year, month);
+}
+
+int leap(int year){
+	if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+		return 1;
+	else
+		return 0;
+}
+
+void Wday(int y, int m, int d){
+	int cday = 0;
+	int wday;
+	int yday;
+	if (leap(y))
+		yday = 366;
+	else
+		yday = 365;
+	
+	for (int i = 1;  i<m; ++i){ cday += mday[i];}
+	if (leap(y))
+		wday = (y + y / 4 - y / 100 + y / 400 + cday + d) % 7;
+	else
+		wday = (y + y / 4 - y / 100 + y / 400 - 1 + cday+d) % 7;
+	switch (wday)
+	{
+	case 0:
+		cout << "일요일" << endl;
+		break;
+	case 1:
+		cout << "월요일" << endl;
+		break;
+	case 2:
+		cout << "화요일" << endl;
+		break;
+	case 3:
+		cout << "수요일" << endl;
+		break;
+	case 4:
+		cout << "목요일" << endl;
+		break;
+	case 5:
+		cout << "금요일" << endl;
+		break;
+	case 6:
+		cout << "토요일" << endl;
+		break;
+	default:
+		break;
+	}
+}
+
+int Fday(int y, int m){
+	int cday = 0;
+	int wday;
+	int yday;
+	if (leap(y))
+		yday = 366;
+	else
+		yday = 365;
+
+	for (int i = 1; i<m; ++i){ cday += mday[i]; }
+	if (leap(y))
+		wday = (y + y / 4 - y / 100 + y / 400 + cday + 1) % 7;
+	else
+		wday = (y + y / 4 - y / 100 + y / 400 - 1 + cday + 1) % 7;
+	switch (wday)
+	{
+	case 0:
+		return 0;
+		break;
+	case 1:
+		return 1;
+		break;
+	case 2:
+		return 2;
+		break;
+	case 3:
+		return 3;
+		break;
+	case 4:
+		return 4;
+		break;
+	case 5:
+		return 5;
+		break;
+	case 6:
+		return 6;
+		break;
+	default:
+		break;
+	}
+}
+
+void calendar(int y, int m){
+	int cal[42];
+	int fday=Fday(y,m), k = 1,cnt=0;
+	
+		
+	for (int i = fday; i < mday[m - 1]; ++i){
+		cal[i] = k;
+		++k;
+	}
+	cout << y << "년" << m << "월" << endl;
+	cout << "  일  월  화  수  목  금  토  " << endl;
+	for (int i = 0; i < fday; ++i){
+		cout << "    ";
+		++cnt;
+		if (cnt % 7 == 0)
+			cout << endl;
+	}
+
+	for (int i = fday; i < mday[m - 1]; ++i){
+		printf("%4d", cal[i]);
+		++cnt;
+		if (cnt % 7 == 0)
+			cout << endl;
+	}
+	cout << endl;
+}

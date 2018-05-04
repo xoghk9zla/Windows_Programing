@@ -1,0 +1,49 @@
+#include <iostream>
+
+using namespace std;
+
+class Student{
+public:
+	char *name;
+	int grade;
+	char score[3];
+	double GPA=0;
+	Student(){};
+	Student(char* n, int g, char w, char d, char c) : grade(g)
+	{
+		score[0] = w, score[1] = d, score[2] = c;
+		for (int i = 0; i < 3; ++i)
+			switch (score[i])
+		{
+			case 'A':
+				GPA += 4.5;
+				break;
+			case 'B':
+				GPA += 3.5;
+				break;
+			case 'C':
+				GPA+= 2.5;
+				break;
+			default:
+				break;
+		}
+		name = new char[strlen(n) + 1];
+		strcpy_s(name, strlen(n) + 1, n);
+		GPA = GPA/3;
+	};
+	~Student(){ delete[]name; };
+	void show(){
+		cout << name << " " << grade << " " << "ÆòÁ¡: " << GPA << endl;
+	}
+};
+
+int main()
+{
+	Student a("Steve", 1, 'A', 'B', 'A');
+	Student b("Mary", 2, 'B', 'B', 'A');
+	Student c("Paul", 3, 'A', 'A', 'B');
+
+	a.show();
+	b.show();
+	c.show();
+}

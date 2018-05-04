@@ -1,0 +1,259 @@
+애벌레 이동
+먹이와 폭탄 추가
+먹이를 먹으면 꼬리추가
+폭탄을 먹으면 꼬리 삭제
+마우스로 방향 전환
+먹이를 다먹거나 꼬리가 다없어지면 종료
+
+#include <stdio.h>
+#include <Windows.h>
+#include <math.h>
+#define _CRT_SECURE_NO_WARNINGS
+
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = "window programe 3-6";	// 제목
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
+
+struct Point{
+	int CenX, CenY, r = 25, dir = 0;
+	Point(){}
+	Point(int x1, int y1) :CenX(x1), CenY(y1){}
+};
+float LengthPts(Point p, Point o)
+{
+	return (sqrt((float)(o.CenX - p.CenX)*(o.CenX - p.CenX) + (o.CenY - p.CenY)*(o.CenY - p.CenY)));
+}
+BOOL InCircle(Point c, Point o)
+{
+	if (LengthPts(c, o) < c.r + o.r)
+		return TRUE;
+	else return FALSE;
+}
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = NULL;
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 0, 0, 1200, 700, NULL, (HMENU)NULL, hInstance, NULL); //윈도우 클래스 이름, 타이틀 이름, 스타일, x좌표, y좌표, 폭, 높이, 부모윈도우 핸들, 메뉴 핸들, 응용 프로그램id, 생성된 윈도우 정보
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HPEN hPen, oldPen;
+	int mx, my;
+	static Point head, tail, temp, obj[5], bomb[2], snake[10];
+	static int speed, cnt, position = 0, num;
+	switch (uMsg)
+	{
+	case WM_CREATE:
+		head.CenX = 75, head.CenY = 25, tail.CenX = head.CenX-head.r*2, tail.CenY = head.CenY;
+		snake[0].CenX = head.CenX, snake[0].CenY = head.CenY, snake[1].CenX = tail.CenX, snake[1].CenX = tail.CenX;
+		for (int i = 0; i < 10; ++i)
+			obj[i].CenX = rand() % 800, obj[i].CenY = rand() % ((650 - 100) + 1) + 100;
+		speed = 1100, cnt = 0, num=1;
+		SetTimer(hWnd, 6, 100, NULL);
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		/*for (int i = 0; i < 10; ++i){
+			if (InCircle(head, obj[i])){
+				++num;
+				obj[i] = snake[num];
+			}
+				 obj[i].CenX = tail.CenX+tail.r*2, obj[i];
+		}*/
+		//머리부분
+		hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		Ellipse(hdc, head.CenX - head.r, head.CenY - head.r, head.CenX + head.r, head.CenY + head.r);
+
+		//꼬리부분
+		hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		Ellipse(hdc, snake[num].CenX - snake[num].r, snake[num].CenY - snake[num].r, snake[num].CenX + snake[num].r, snake[num].CenY + snake[num].r);
+		
+		//먹이, 먹으면 꼬리가됨
+		hPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+		oldPen = (HPEN)SelectObject(hdc, hPen);
+		for (int i = 0; i < 10; ++i)
+				Ellipse(hdc, obj[i].CenX - obj[i].r, obj[i].CenY - obj[i].r, obj[i].CenX + obj[i].r, obj[i].CenY + obj[i].r);
+		SelectObject(hdc, oldPen);
+		DeleteObject(hPen);
+		ReleaseDC(hWnd, hdc);
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_LBUTTONDOWN:
+		mx = LOWORD(lParam);
+		my = HIWORD(lParam);
+		if (head.CenX < mx && (my > tail.CenY - head.r && my < head.CenY + head.r)){
+			SetTimer(hWnd, 1, speed, NULL);
+			if (head.CenX < tail.CenX){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.CenY > tail.CenY || head.CenY < tail.CenY)
+				head.CenX = tail.CenX + tail.r * 2, head.CenY = tail.CenY;
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 3);
+			KillTimer(hWnd, 4);
+		}
+		else if (head.CenX > mx && (my > tail.CenY - head.r && my < head.CenY + head.r)){
+			SetTimer(hWnd, 2, speed, NULL);
+			if (head.CenX > tail.CenX){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.CenY < tail.CenY || head.CenY > tail.CenY)
+				head.CenX = tail.CenX - tail.r * 2, head.CenY = tail.CenY;
+
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 3);
+			KillTimer(hWnd, 4);
+		}
+		else if (head.CenY < my && (mx > tail.CenX - head.r && mx < head.CenX + head.r)){
+			if (head.CenY < tail.CenY){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.CenY == tail.CenY)
+				head.CenX = tail.CenX, head.CenY = tail.CenY + tail.r * 2;
+			SetTimer(hWnd, 3, speed, NULL);
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 4);
+		}
+
+		else if (head.CenY > my && (mx > tail.CenX - head.r && mx < head.CenX + head.r)){
+			if (head.CenY > tail.CenY){
+				temp = head;
+				head = tail;
+				tail = temp;
+			}
+			else if (head.CenY == tail.CenY)
+				head.CenX = tail.CenX, head.CenY = tail.CenY - tail.r * 2;
+			SetTimer(hWnd, 4, speed, NULL);
+			KillTimer(hWnd, 1);
+			KillTimer(hWnd, 2);
+			KillTimer(hWnd, 3);
+		}
+
+		break;
+	case WM_CHAR:
+		switch (wParam){
+		case '+':
+			if (speed > 500)
+				speed -= 500;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case '-':
+			speed += 500;
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		}
+		break;
+	case WM_TIMER:
+		switch (wParam)
+		{
+		case 1:
+			if (head.CenX < 1155){
+				head.CenX += 20, tail.CenX += 20;
+			}
+			else{
+				temp = head;
+				head = tail;
+				tail = temp;
+				SetTimer(hWnd, 2, speed, NULL);
+				KillTimer(hWnd, 1);
+				KillTimer(hWnd, 3);
+				KillTimer(hWnd, 4);
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 2:
+			if (head.CenX > 25){
+				head.CenX -= 20, tail.CenX -= 20;
+			}
+			else{
+				temp = head;
+				head = tail;
+				tail = temp;
+				SetTimer(hWnd, 1, speed, NULL);
+				KillTimer(hWnd, 2);
+				KillTimer(hWnd, 3);
+				KillTimer(hWnd, 4);
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 3:
+			if (head.CenY < 635){
+				head.CenY += 20, tail.CenY += 20;
+			}
+			else{
+				temp = head;
+				head = tail;
+				tail = temp;
+				SetTimer(hWnd, 4, speed, NULL);
+				KillTimer(hWnd, 1);
+				KillTimer(hWnd, 2);
+				KillTimer(hWnd, 3);
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 4:
+			if (head.CenY > 25){
+				head.CenY -= 20, tail.CenY -= 20;
+			}
+			else{
+				temp = head;
+				head = tail;
+				tail = temp;
+				SetTimer(hWnd, 3, speed, NULL);
+				KillTimer(hWnd, 1);
+				KillTimer(hWnd, 2);
+				KillTimer(hWnd, 4);
+			}
+			InvalidateRect(hWnd, NULL, TRUE);
+			break;
+		case 5:
+			break;
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+
+		return 0;
+	default:
+		break;
+	}
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}

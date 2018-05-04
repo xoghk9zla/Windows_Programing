@@ -1,0 +1,123 @@
+#include <Windows.h>
+#include "resource.h"
+
+HINSTANCE g_hInst;
+LPCTSTR lpszClass = L"7-1";	// 제목
+LPCTSTR lpszClass_Child = L"NoName";	// 제목
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
+{
+	HWND hWnd;
+	MSG Message;
+	WNDCLASS WndClass;
+	g_hInst = hInstance;
+
+	WndClass.cbClsExtra = 0;
+	WndClass.cbWndExtra = 0;
+	WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	WndClass.hInstance = hInstance;
+	WndClass.lpfnWndProc = (WNDPROC)WndProc;
+	WndClass.lpszClassName = lpszClass;
+	WndClass.lpszMenuName = MAKEINTRESOURCE(IDR_MENU1);
+	WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+	RegisterClass(&WndClass);	//윈도우 등록
+
+	WndClass.lpfnWndProc = (WNDPROC)ChildWndProc;
+	WndClass.lpszClassName = lpszClass_Child;
+
+	RegisterClass(&WndClass);
+
+	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW, 0, 0, 1200, 700, NULL, (HMENU)NULL, hInstance, NULL); //윈도우 클래스 이름, 타이틀 이름, 스타일, x좌표, y좌표, 폭, 높이, 부모윈도우 핸들, 메뉴 핸들, 응용 프로그램id, 생성된 윈도우 정보
+
+	ShowWindow(hWnd, nCmdShow);
+	UpdateWindow(hWnd);
+
+	while (GetMessage(&Message, 0, 0, 0)){
+		TranslateMessage(&Message);
+		DispatchMessage(&Message);
+	}
+	return Message.wParam;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	HDC hdc;
+	PAINTSTRUCT ps;
+	HWND hwndChild;
+	static HWND hwndClient; // 클라이언트 윈도우
+	MDICREATESTRUCT mdicreate;
+	CLIENTCREATESTRUCT clientcreate;
+	
+	switch (uMsg)
+	{
+	case WM_CREATE:
+		clientcreate.hWindowMenu = GetSubMenu(GetMenu(hWnd), 0);
+		clientcreate.idFirstChild = 100; // 첫 번째 차일드 ID
+		hwndClient = CreateWindow(L"MDICLIENT", NULL, WS_CHILD | WS_CLIPCHILDREN | WS_VISIBLE, 0, 0, 0, 0, hWnd, NULL, g_hInst, (LPSTR)&clientcreate);
+		ShowWindow(hwndClient, SW_SHOW);
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_COMMAND:
+		switch(LOWORD(wParam)){
+		case ID_FILE_NEW:
+			mdicreate.szClass = lpszClass_Child;
+			mdicreate.szTitle = lpszClass_Child;
+			mdicreate.hOwner = g_hInst; // 프로그램 인스턴스 핸들
+			mdicreate.x = 0; // 자식 윈도우 X좌표
+			mdicreate.y = 0; // 자식 윈도우 Y좌표
+			mdicreate.cx = 800; // 자식 윈도우 폭
+			mdicreate.cy = 600; // 자식 윈도우 높이
+			mdicreate.style = 0;
+			mdicreate.lParam = 0; // MDI 클라이언트 윈도우를 만들어라
+			hwndChild = (HWND)SendMessage(hwndClient, WM_MDICREATE, 0, (LPARAM)(LPMDICREATESTRUCT)&mdicreate);
+			break;
+		case ID_WINDOW_CLOSE: // 창닫기 처리, 모든 차일드 윈도우 화면 닫기
+			// 클라이언트를 통해, 활성화(Active)된 차일드 윈도우 탐색
+			hwndChild = (HWND)SendMessage(hwndClient, WM_MDIGETACTIVE, 0, 0);
+			// 클라이언트에서 특정 차일드를 종료해도 되나 문의
+			if (SendMessage(hwndChild, WM_QUERYENDSESSION, 0, 0))SendMessage(hwndClient, WM_MDIDESTROY,	(WPARAM)hwndChild, 0); // 종료처리
+			break;
+		case ID_TILE: // 클라이언트에게 윈도우의 타입지정을 요청
+			SendMessage(hwndClient, WM_MDITILE, 0, 0);
+			break;
+		case ID_CASCADE:
+			SendMessage(hwndClient, WM_MDICASCADE, 0, 0);
+			break;
+		case ID_ARRANGE:
+			SendMessage(hwndClient, WM_MDIICONARRANGE, 0, 0);
+			break;
+		case ID_EXIT:
+			PostQuitMessage(0);
+			break;
+		}
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+
+		return 0;
+	default:
+		break;
+	}
+	return DefFrameProc(hWnd, hwndClient, uMsg, wParam, lParam);
+}
+LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+
+	switch (uMsg) // 현재 특별한 내용은 정의되어 있지 않음
+	{
+	case WM_CREATE:
+		break;
+	case WM_DESTROY:
+		return 0;
+	}
+
+	return DefMDIChildProc(hWnd, uMsg, wParam, lParam);
+}

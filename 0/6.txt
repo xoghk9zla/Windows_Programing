@@ -1,0 +1,84 @@
+#include <iostream>
+#include <time.h>
+using namespace std;
+
+int compare(int*);
+
+int main()
+{
+	int arr[4][5];
+	int i, j, op;
+	srand(time(NULL));
+	for (int i = 0; i < 4; ++i){
+		for (int j = 0; j < 5; ++j){
+			arr[i][j] = rand()%20+1;
+		}
+	}
+	for (int i = 0; i < 4; ++i){
+		for (int j = 0; j < 5; ++j){
+			cout << arr[i][j] << "  ";
+			if (j == 4)
+				cout << endl;
+		}
+	}
+
+	while (1){
+		cout << "옵션 선택";
+		cin >> op;
+		cout << "행과 열을 입력하세요.";
+		cin >> i >> j;
+		switch (op)
+		{
+		case 1:
+			arr[i - 1][j - 1] *= 5;
+			for (i = 0; i < 4; ++i){
+				for (j = 0; j < 5; ++j){
+					cout << arr[i][j] << "  ";
+					if (j == 4)
+						cout << endl;
+				}
+			}
+			break;
+		case 2:
+			arr[i - 1][j - 1] += arr[j - 1][i - 1];
+			for (i = 0; i < 4; ++i){
+				for (j = 0; j < 5; ++j){
+					cout << arr[i][j] << "  ";
+					if (j == 4)
+						cout << endl;
+				}
+			}
+			break;
+		case 3:
+			arr[i - 1][j - 1] *= -1;
+			for (i = 0; i < 4; ++i){
+				for (j = 0; j < 5; ++j){
+					cout << arr[i][j] << "  ";
+					if (j == 4)
+						cout << endl;
+				}
+			}		break;
+		case 4:
+			arr[i - 1][j - 1] = compare(*arr);
+			for (i = 0; i < 4; ++i){
+				for (j = 0; j < 5; ++j){
+					cout << arr[i][j] << "  ";
+					if (j == 4)
+						cout << endl;
+				}
+			}		break;
+		default:
+			break;
+		}
+	}
+}
+
+int compare(int* arr){
+	int g = 0;
+
+	for (int i = 0; i < 20; ++i){
+		if (g < arr[i])
+			g = arr[i];
+	}
+	return g;
+}
